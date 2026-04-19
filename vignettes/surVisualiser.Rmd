@@ -1,0 +1,120 @@
+---
+title: "Introduction to surVisualiser"
+author:
+  - name: Yuhan Sun
+    email: yzsun0123@gmail.com
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Introduction to surVisualiser}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+# Introduction
+
+**surVisualiser** provides a streamlined workflow for analysing TCGA
+transcriptome data. The package covers the full analysis pipeline from
+raw transcript counts to publication-ready survival plots:
+1. Reading and aggregating TCGA transcript-level expression data
+2. Integrating clinical survival metadata
+3. Immune cell deconvolution via CIBERSORT
+4. Kaplan-Meier survival visualisation with flexible grouping
+
+# Installation
+
+```{r install, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("surVisualiser")
+```
+
+# Quick Start
+
+## Step 1: Load TCGA Expression Data
+
+```{r load-data, eval=FALSE}
+library(surVisualiser)
+
+# Read tumor samples for breast cancer
+brca <- TCGA_transcript(
+    cancer = "BRCA",
+    data_dir = "/path/to/TCGA/data",
+    sample_type = "tumor"
+)
+```
+
+## Step 2: Combine with Clinical Data
+
+```{r clinical, eval=FALSE}
+brca_clinical <- clinical_combine(
+    brca,
+    cancer = "BRCA",
+    clinical_dir = "/path/to/clinical/data"
+)
+```
+
+## Step 3: Immune Cell Deconvolution
+
+```{r cibersort, eval=FALSE}
+# Load bundled reference matrix
+data(my_ref)
+
+deconv <- CIBERSORT(
+    brca,
+    c1 = "sample",
+    c2 = "symbol",
+    c3 = "raw_count",
+    ref = my_ref,
+    meth = "cibersort",
+    act = "get"
+)
+```
+
+## Step 4: Survival Analysis
+
+```{r survival, eval=FALSE}
+# Split gene expression at median
+surv_data <- split_median(brca_clinical,
+    cat = "cancer_stage",
+    item = "TP53"
+)
+
+# Generate Kaplan-Meier plot
+ggsurvp_cat_item(
+    surv_data,
+    p = TRUE, nrow = 2,
+    palette = c("#E41A1C", "#377EB8"),
+    xlab = "Days", ylab = "Survival Probability",
+    title = "TP53 Expression and Survival",
+    size0 = 12
+)
+```
+
+# Bundled Data
+
+The package includes three datasets:
+
+- **`cellname`**: Mapping from CIBERSORT cell-type IDs to readable names
+- **`secretome_genes`**: Comprehensive list of secreted protein genes
+- **`my_ref`**: Reference matrix for CIBERSORT deconvolution
+
+```{r data-example}
+data(cellname, package = "surVisualiser")
+head(cellname)
+```
+
+# Session Info
+
+```{r session-info}
+sessionInfo()
+```
