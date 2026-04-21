@@ -33,11 +33,14 @@
 #' )
 #' }
 ggsurvp_cat_item <- function(x, p, nrow, palette, xlab, ylab, title, size0) {
+
+    ####*Fit Kaplan-Meier survival model*####
     fit <- survival::survfit(
         survival::Surv(total_living_days, vital_status) ~ item,
         data = x
     )
 
+    ####*Build faceted ggsurvplot*####
     survminer::ggsurvplot(
         fit,
         data = x,

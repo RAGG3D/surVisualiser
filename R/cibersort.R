@@ -35,6 +35,8 @@
 #' )
 #' }
 CIBERSORT <- function(x, c1, c2, c3, ref, meth, act) {
+
+    ####*Aggregate duplicated sample-gene rows*####
     tibble::as_tibble(
         data.table::setDT(x)[,
             lapply(.SD, sum),
@@ -42,6 +44,8 @@ CIBERSORT <- function(x, c1, c2, c3, ref, meth, act) {
             .SDcols = c3
         ]
     ) |>
+
+        ####*Deconvolve cell-type proportions*####
         tidybulk::deconvolve_cellularity(
             .sample = !!rlang::sym(c1),
             .transcript = !!rlang::sym(c2),

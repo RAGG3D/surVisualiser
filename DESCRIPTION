@@ -1,7 +1,7 @@
 Package: surVisualiser
 Type: Package
 Title: Multi-Dimensional Survival Analysis and Visualization for TCGA Transcriptome Data
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: person(
     given = "Yuhan",
     family = "Sun",
@@ -11,9 +11,11 @@ Authors@R: person(
 Description: Provides a streamlined workflow for analyzing TCGA transcriptome
     data. Includes functions for reading and aggregating transcript-level
     expression, integrating clinical survival metadata, performing immune cell
-    deconvolution via CIBERSORT, and generating Kaplan-Meier survival plots
-    with flexible grouping strategies. Designed for reproducible cancer
-    genomics research.
+    deconvolution via CIBERSORT, generating Kaplan-Meier survival plots with
+    flexible grouping strategies, per-sample pre-ranked GSEA against MSigDB
+    hallmarks with circular-analysis-safe secretome gene exclusion, and
+    side-by-side Tumor / Normal / difference heatmaps of hallmark-secretome
+    correlations. Designed for reproducible cancer genomics research.
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: true
@@ -32,15 +34,23 @@ Imports:
     survival,
     survminer,
     tibble,
-    tidybulk
+    tidybulk,
+    tidyr
 Suggests:
     BiocStyle,
+    circlize,
+    clusterProfiler,
+    ComplexHeatmap,
     knitr,
+    msigdbr,
+    RColorBrewer,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tidyHeatmap
 biocViews: Transcriptomics, Survival, GeneExpression, ImmuneResponse,
-    Visualization
+    Visualization, GeneSetEnrichment, Pathways
 VignetteBuilder: knitr
+Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 URL: https://github.com/yzsun/surVisualiser
 BugReports: https://github.com/yzsun/surVisualiser/issues

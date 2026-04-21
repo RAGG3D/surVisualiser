@@ -19,6 +19,8 @@
 #' pw_results <- pw_diff_selection(pairwise_data, "TP53_BRCA1")
 #' }
 pw_diff_selection <- function(data, genepair) {
+
+    ####*Filter to the requested gene pair and clean rows*####
     x <- data |>
         dplyr::filter(grepl(genepair, .data$comp2)) |>
         dplyr::filter(grepl(genepair, .data$comp1)) |>
@@ -31,6 +33,8 @@ pw_diff_selection <- function(data, genepair) {
         dplyr::select("comp1", "comp2", "P", "adjP", "gene_combine") |>
         stats::na.omit() |>
         unique()
+
+    ####*Reset row names and return*####
     rownames(x) <- NULL
     x
 }
@@ -58,6 +62,8 @@ pw_diff_selection <- function(data, genepair) {
 #' dat <- split_median(my_data, cat = "cancer_type", item = "gene_expr")
 #' }
 split_median <- function(x, cat, item) {
+
+    ####*Per-group median split into two equal-size bins*####
     x |>
         dplyr::group_by(!!as.name(cat)) |>
         dplyr::mutate(
@@ -69,6 +75,8 @@ split_median <- function(x, cat, item) {
             )
         ) |>
         dplyr::ungroup() |>
+
+        ####*Relabel bins as Low / High*####
         dplyr::mutate(item = gsub("1", "L", .data$item)) |>
         dplyr::mutate(item = gsub("2", "H", .data$item))
 }

@@ -59,6 +59,8 @@ TCGA_transcript <- function(cancer,
                             data_dir,
                             sample_type = c("all", "tumor", "normal"),
                             scale = TRUE) {
+
+    ####*Argument resolution and path construction*####
     sample_type <- match.arg(sample_type)
 
     transcript_dir <- file.path(
@@ -74,6 +76,7 @@ TCGA_transcript <- function(cancer,
         data_dir, paste0("TCGA-", cancer), sheet_name
     )
 
+    ####*Read raw transcript-level counts*####
     count_files <- list.files(transcript_dir)
 
     counts <- purrr::map_dfr(as.list(count_files), function(i) {
@@ -81,6 +84,7 @@ TCGA_transcript <- function(cancer,
             dplyr::mutate(sample = i)
     })
 
+    ####*Annotation mapping and sample sheet join*####
     counts <- counts |>
         tidybulk::rename(raw_count = "V2") |>
         dplyr::mutate(ensembl_id = gsub("\\..*", "", .data$V1)) |>
@@ -102,7 +106,7 @@ TCGA_transcript <- function(cancer,
         dplyr::mutate(sample = .data$`Case ID`) |>
         dplyr::select("sample", "symbol", "raw_count")
 
-    # Sum duplicated sample-gene rows
+    ####*Aggregate duplicated sample-gene rows*####
     result <- tibble::as_tibble(
         data.table::setDT(counts)[,
             list(raw_count = sum(raw_count)),
@@ -110,6 +114,7 @@ TCGA_transcript <- function(cancer,
         ]
     )
 
+    ####*Optional abundance scaling*####
     if (scale) {
         result <- tidybulk::scale_abundance(
             result,

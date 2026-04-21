@@ -6,7 +6,7 @@
 \alias{surVisualiser-package}
 \title{surVisualiser: Multi-Dimensional Survival Analysis and Visualization for TCGA Transcriptome Data}
 \description{
-Provides a streamlined workflow for analyzing TCGA transcriptome data. Includes functions for reading and aggregating transcript-level expression, integrating clinical survival metadata, performing immune cell deconvolution via CIBERSORT, and generating Kaplan-Meier survival plots with flexible grouping strategies. Designed for reproducible cancer genomics research.
+Provides a streamlined workflow for analyzing TCGA transcriptome data. Includes functions for reading and aggregating transcript-level expression, integrating clinical survival metadata, performing immune cell deconvolution via CIBERSORT, generating Kaplan-Meier survival plots with flexible grouping strategies, per-sample pre-ranked GSEA against MSigDB hallmarks with circular-analysis-safe secretome gene exclusion, and side-by-side Tumor / Normal / difference heatmaps of hallmark-secretome correlations. Designed for reproducible cancer genomics research.
 }
 \seealso{
 Useful links:
