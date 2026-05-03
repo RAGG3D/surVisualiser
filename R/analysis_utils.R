@@ -80,3 +80,97 @@ split_median <- function(x, cat, item) {
         dplyr::mutate(item = gsub("1", "L", .data$item)) |>
         dplyr::mutate(item = gsub("2", "H", .data$item))
 }
+
+
+#' Stratified Pairwise Survival P-Values
+#'
+#' Runs a stratified pairwise log-rank test
+#' (\code{\link[survival:pairwise_survdiff]{pairwise_survdiff}})
+#' comparing survival across combinations of a categorical variable
+#' (\code{cat}) and a group variable (\code{item}), then reshapes the
+#' result into a tidy long table. Self-comparisons and symmetric
+#' duplicates (e.g., H/L vs L/H) are removed.
+#'
+#' @param x A \code{data.frame} or \code{tibble} with at least
+#'   columns \code{total_living_days}, \code{vital_status},
+#'   \code{cat}, and \code{item}.
+#' @param method0 Character string. P-value adjustment method passed
+#'   to \code{\link[survival:pairwise_survdiff]{pairwise_survdiff}}
+#'   (for example \code{"BH"}, \code{"bonferroni"}, or
+#'   \code{"none"}).
+#' @param p_name0 Character string. Name of the p-value column in
+#'   the returned table (for example \code{"P"} or \code{"adjP"}).
+#'
+#' @return A \code{data.frame} with columns \code{cat} (stratum),
+#'   \code{comb1} and \code{comb2} (the two groups being compared),
+#'   and the p-value column named by \code{p_name0}.
+#'
+#' @importFrom survminer pairwise_survdiff
+#' @importFrom survival Surv
+#' @importFrom dplyr mutate filter select all_of
+#' @importFrom tidyr pivot_longer separate unite
+#' @importFrom rlang .data !!
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' pvals <- strata_p(surv_data,
+#'     method0 = "BH",
+#'     p_name0 = "adjP"
+#' )
+#' }
+strata_p <- function(x, method0, p_name0) {
+
+    ####*Run pairwise log-rank test across cat + item strata*####
+    pw <- survminer::pairwise_survdiff(
+        survival::Surv(total_living_days, vital_status) ~ cat + item,
+        p.adjust.method = method0,
+        data = x
+    )
+
+    ####*Extract and reshape the p-value matrix*####
+    result <- as.data.frame(pw[[3]]) |>
+        dplyr::mutate(cat = rownames(as.data.frame(pw[[3]]))) |>
+        tidyr::pivot_longer(
+            -"cat",
+            names_to = "comb2",
+            values_to = p_name0
+        ) |>
+        stats::na.omit()
+
+    ####*Parse stratum and group labels from row/col names*####
+    result <- result |>
+        tidyr::separate(
+            "cat", c("cat", "comb1"), sep = ","
+        ) |>
+        dplyr::mutate(
+            cat   = gsub(".*=", "", .data$cat),
+            comb1 = gsub(".*=", "", .data$comb1),
+            comb2 = gsub(".*cat.", "", .data$comb2)
+        ) |>
+        dplyr::mutate(
+            comb2 = gsub("\\.", "/", .data$comb2),
+            cat1  = gsub(" ", "/", .data$cat)
+        ) |>
+        tidyr::separate(
+            "comb2", c("cat2", "comb2"), sep = "//item/"
+        )
+
+    ####*Remove duplicate and symmetric comparisons*####
+    result |>
+        tidyr::unite(
+            "test", c("comb1", "comb2"),
+            sep = "/", remove = FALSE
+        ) |>
+        dplyr::filter(
+            !.data$test %in% c(
+                "H/L/L/H", "L/H/H/L",
+                "L/L/H/H", "H/H/L/L"
+            )
+        ) |>
+        dplyr::filter(.data$cat1 == .data$cat2) |>
+        dplyr::select(
+            "cat", "comb1", "comb2", dplyr::all_of(p_name0)
+        )
+}
